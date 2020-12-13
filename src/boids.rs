@@ -10,6 +10,7 @@ use amethyst::renderer::{
 };
 use rand::{thread_rng, Rng};
 use std::f32::consts::PI;
+use std::f32::NAN;
 
 pub struct Boids;
 
@@ -17,9 +18,20 @@ pub const ARENA_HEIGHT: f32 = 200.0;
 pub const ARENA_WIDTH: f32 = 200.0;
 
 pub const BOID_VELOCITY: f32 = 0.75;
-pub const BOID_SIGHT: f32 = 10.0;
+pub const BOID_SIGHT: f32 = 20.0;
 pub const BOID_WIDTH: f32 = 7.0;
 pub const BOID_HEIGHT: f32 = 10.0;
+
+pub struct TransformInfo {
+    pub angles: Vec<f32>,
+    pub velocities: Vec<f32>,
+    pub new_y: f32,
+    pub new_x: f32,
+}
+
+impl Component for TransformInfo {
+    type Storage = DenseVecStorage<Self>;
+}
 
 pub struct Boid {
     pub visual_distance: f32,
@@ -38,16 +50,19 @@ fn initialize_boids(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>,
 
     for _ in 0..num_boids {
         // Create the translation
-        let mut local_transform = Transform::default();
+        let mut transform = Transform::default();
 
-        // Make these random
         let spawn_x = rng.gen_range(BOID_WIDTH as f32, ARENA_WIDTH - BOID_WIDTH as f32);
         let spawn_y = rng.gen_range(BOID_HEIGHT as f32, ARENA_HEIGHT - BOID_HEIGHT as f32);
-        local_transform.set_rotation_2d(rng.gen_range(-PI, PI));
-        local_transform.set_translation_xyz(spawn_x, spawn_y, 0.0);
+        /*
+        let spawn_x = ARENA_WIDTH * 0.9;
+        let spawn_y = ARENA_HEIGHT / 2.0;
+        */
+        transform.set_rotation_2d(rng.gen_range(-PI, PI));
+        transform.set_translation_xyz(spawn_x, spawn_y, 0.0);
         let ray = Ray {
             origin: Point3::new(spawn_x, spawn_y, 0.0),
-            direction: Vector3::new(spawn_x, spawn_y + BOID_SIGHT, 0.0),
+            direction: Vector3::new(0.0, -1.0, 0.0),
         };
 
         // Gold boid
@@ -63,7 +78,13 @@ fn initialize_boids(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>,
                 width: BOID_WIDTH,
                 height: BOID_HEIGHT,
             })
-            .with(local_transform)
+            .with(TransformInfo {
+                angles: vec![],
+                velocities: vec![],
+                new_y: NAN,
+                new_x: NAN,
+            })
+            .with(transform)
             .build();
     }
 }
@@ -77,7 +98,13 @@ impl SimpleState for Boids {
 
         world.register::<Boid>();
 
-        initialize_boids(world, sprite_sheet_handle, 1);
+        let args: Vec<String> = std::env::args().collect();
+        let num_boids = if args.len() > 1 {
+            args[1].parse::<usize>().unwrap_or(1)
+        } else {
+            1
+        };
+        initialize_boids(world, sprite_sheet_handle, num_boids);
         initialize_camera(world);
     }
 }
