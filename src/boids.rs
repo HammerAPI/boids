@@ -1,4 +1,7 @@
 use amethyst::assets::{AssetStorage, Handle, Loader};
+use amethyst::core::geometry::Ray;
+use amethyst::core::math::base::Vector3;
+use amethyst::core::math::geometry::Point3;
 use amethyst::core::transform::Transform;
 use amethyst::ecs::{Component, DenseVecStorage, World};
 use amethyst::prelude::*;
@@ -13,13 +16,14 @@ pub struct Boids;
 pub const ARENA_HEIGHT: f32 = 200.0;
 pub const ARENA_WIDTH: f32 = 200.0;
 
-pub const BOID_VELOCITY: f32 = 0.5;
+pub const BOID_VELOCITY: f32 = 0.75;
 pub const BOID_SIGHT: f32 = 10.0;
 pub const BOID_WIDTH: f32 = 7.0;
 pub const BOID_HEIGHT: f32 = 10.0;
 
 pub struct Boid {
     pub visual_distance: f32,
+    pub ray: Ray<f32>,
     pub velocity: f32,
     pub width: f32,
     pub height: f32,
@@ -39,8 +43,12 @@ fn initialize_boids(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>,
         // Make these random
         let spawn_x = rng.gen_range(BOID_WIDTH as f32, ARENA_WIDTH - BOID_WIDTH as f32);
         let spawn_y = rng.gen_range(BOID_HEIGHT as f32, ARENA_HEIGHT - BOID_HEIGHT as f32);
-        local_transform.set_translation_xyz(spawn_x, spawn_y, 0.0);
         local_transform.set_rotation_2d(rng.gen_range(-PI, PI));
+        local_transform.set_translation_xyz(spawn_x, spawn_y, 0.0);
+        let ray = Ray {
+            origin: Point3::new(spawn_x, spawn_y, 0.0),
+            direction: Vector3::new(spawn_x, spawn_y + BOID_SIGHT, 0.0),
+        };
 
         // Gold boid
         let sprite_render = SpriteRender::new(sprite_sheet_handle.clone(), 1);
@@ -50,6 +58,7 @@ fn initialize_boids(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>,
             .with(sprite_render)
             .with(Boid {
                 visual_distance: BOID_SIGHT,
+                ray,
                 velocity: BOID_VELOCITY,
                 width: BOID_WIDTH,
                 height: BOID_HEIGHT,
