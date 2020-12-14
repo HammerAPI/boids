@@ -1,3 +1,4 @@
+/*
 //use amethyst::core::math::Point3;
 use amethyst::input::{InputHandler, StringBindings};
 use amethyst::{
@@ -200,4 +201,5 @@ fn collide_with_mouse(boid: &Boid, transform: &Transform, mouse_x: f32, mouse_y:
 
     mouse_x >= left && mouse_x <= right && mouse_y >= bottom && mouse_y <= top
 }
+*/
 */

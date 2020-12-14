@@ -30,9 +30,9 @@ fn main() -> amethyst::Result<()> {
                 .with_plugin(RenderFlat2D::default()),
         )?
         .with_bundle(TransformBundle::new())?
-        .with_bundle(input_bundle)?
-        .with(systems::MovementSystem, "movement_system", &[])
-        .with(systems::CollisionSystem, "collisionSystem", &[]);
+        //.with_bundle(input_bundle)?
+        .with(systems::MovementSystem, "movement_system", &[]);
+    //.with(systems::CollisionSystem, "collisionSystem", &[]);
 
     let mut game = Application::new(assets_dir, Boids, game_data)?;
 
