@@ -14,7 +14,6 @@ pub struct Boids;
 pub const ARENA_HEIGHT: f32 = 200.0;
 pub const ARENA_WIDTH: f32 = 200.0;
 
-pub const BOID_FOV: f32 = 0.25 * PI;
 pub const BOID_VELOCITY: f32 = 0.75;
 pub const BOID_SIGHT: f32 = 15.0;
 pub const BOID_WIDTH: f32 = 7.0;

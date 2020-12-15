@@ -1,5 +1,3 @@
-//use amethyst::core::math::base::Vector3;
-use amethyst::core::math::Point3;
 use amethyst::{
     core::transform::Transform,
     ecs::{Join, System, WriteStorage},

@@ -1,4 +1,3 @@
-use amethyst::core::math::Point3;
 use amethyst::input::{InputHandler, StringBindings};
 use amethyst::{
     core::Transform,
@@ -6,7 +5,7 @@ use amethyst::{
 };
 use std::f32::consts::PI;
 
-use crate::boids::{Boid, TransformInfo, ARENA_HEIGHT, ARENA_WIDTH, BOID_FOV, BOID_SIGHT};
+use crate::boids::{Boid, TransformInfo, ARENA_HEIGHT, ARENA_WIDTH, BOID_SIGHT};
 
 pub struct CollisionSystem;
 
@@ -33,7 +32,7 @@ impl<'a> System<'a> for CollisionSystem {
                 if boid.id != other_boid.id {
                     // RULE 1: SEPARATION
                     // Keep a distance between every other boid
-                    if nearby(trans, other_trans, BOID_SIGHT) {
+                    if in_fov(trans, other_trans, BOID_SIGHT) {
                         // Get the angle between the two boids
                         let angle_between = fix_angle(get_angle_between(trans, other_trans));
                         let distance = boid_dist(trans, other_trans);
@@ -73,7 +72,7 @@ impl<'a> System<'a> for CollisionSystem {
 
                         // If the angle between the two boids is greater than PI, make it negative
                         let angle_between = angle_between - boid_angle;
-                        let turn = if angle_between > PI { 0.001 } else { -0.001 };
+                        let turn = if angle_between > PI { 0.005 } else { -0.005 };
 
                         info.angles.push(turn);
                     }
@@ -122,6 +121,31 @@ impl<'a> System<'a> for CollisionSystem {
             */
         }
     }
+}
+
+// Check if `other` is in the 180-degree FOV of `boid`
+fn in_fov(boid: &Transform, other: &Transform, distance: f32) -> bool {
+    if nearby(boid, other, distance) {
+        // Boid angle
+        let ba = rad_rotation(boid);
+        // Angle between `boid` and `other`
+        let ab = fix_angle(get_angle_between(boid, other));
+
+        // Adjust so that the boid is facing straight up, or PI/2.0
+        // So, ba = ba - ba + (PI/2.0)
+        // And we need the same adjustment to the angle_between
+        let ab = ab - ba + (PI / 2.0);
+
+        // If the angle between is larger than a full rotation, subtract a full rotation
+        let ab = if ab > 2.0 * PI { ab - 2.0 - PI } else { ab };
+
+        // `boid` is assumed to be facing up, so if the angle between the two boids is between 0
+        // and pi, then `other` is in `boid`'s 180-degree FOV
+        if ab > 0.0 && ab < PI {
+            return true;
+        }
+    }
+    false
 }
 
 fn get_angle_between(boid: &Transform, other: &Transform) -> f32 {
