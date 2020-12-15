@@ -1,3 +1,55 @@
+//use amethyst::core::math::base::Vector3;
+use amethyst::core::math::Point3;
+use amethyst::{
+    core::transform::Transform,
+    ecs::{Join, System, WriteStorage},
+};
+use std::f32::NAN;
+
+use crate::boids::{Boid, TransformInfo};
+
+pub struct MovementSystem;
+
+impl<'a> System<'a> for MovementSystem {
+    type SystemData = (
+        WriteStorage<'a, Boid>,
+        WriteStorage<'a, Transform>,
+        WriteStorage<'a, TransformInfo>,
+    );
+
+    fn run(&mut self, (mut boids, mut transforms, mut trans_info): Self::SystemData) {
+        for (boid, trans, info) in (&mut boids, &mut transforms, &mut trans_info).join() {
+            // If the boid needs to be moved to the other side of the arena, do that
+            if info.new_y.is_finite() {
+                trans.set_translation_y(info.new_y);
+                info.new_y = NAN;
+            }
+            if info.new_x.is_finite() {
+                trans.set_translation_x(info.new_x);
+                info.new_x = NAN;
+            }
+
+            // Rotate boid, given the list of angles assigned to it
+            let angles: Vec<f32> = info.angles.drain(..).collect();
+            for angle in angles {
+                trans.rotate_2d(angle);
+            }
+
+            if info.velocities.is_empty() {
+                // Move the boid according to its velocity
+                trans.move_right(boid.velocity);
+            } else {
+                // If any velocities have been added, use them
+                let velocities: Vec<f32> = info.velocities.drain(..).collect();
+                for velocity in velocities {
+                    trans.move_right(velocity);
+                }
+            }
+        }
+    }
+}
+
+/*
 use amethyst::{
     core::transform::Transform,
     ecs::{Join, System, WriteStorage},
@@ -12,6 +64,12 @@ impl<'a> System<'a> for MovementSystem {
     type SystemData = (WriteStorage<'a, Boid>, WriteStorage<'a, Transform>);
 
     fn run(&mut self, (mut boids, mut transforms): Self::SystemData) {
+        for (boid, trans) in (&mut boids, &mut transforms).join() {
+            //trans.rotate_2d(angle);
+            //trans.move_up(velocity);
+        }
+
+        /*
         // Terrible way of computing the number of boids
         let num_boids = (&boids, &transforms)
             .join()
@@ -79,6 +137,7 @@ impl<'a> System<'a> for MovementSystem {
             //trans.rotate_2d(angle);
             //trans.move_up(velocity);
         }
+        */
     }
 }
 
@@ -101,3 +160,4 @@ fn vec_div(v: (f32, f32), a: usize) -> (f32, f32) {
 fn dist(x1: f32, y1: f32, x2: f32, y2: f32) -> f32 {
     ((x2 - x1).powi(2) + (y2 - y1).powi(2)).sqrt()
 }
+*/

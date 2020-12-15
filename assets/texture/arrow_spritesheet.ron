@@ -1,8 +1,8 @@
 Grid((
     // Width of the texture used by the sprite sheet
-    texture_width: 8,
+    texture_width: 10,
     // Height of the texture used by the sprite sheet
-    texture_height: 10,
+    texture_height: 4,
     // Specifies the number of columns in the sprite sheet
     columns: 2,
     // Specifies the number of sprites in the spritesheet.
