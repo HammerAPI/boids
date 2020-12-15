@@ -23,72 +23,64 @@ impl<'a> System<'a> for CollisionSystem {
             // Get boid coordinates
             let boid_x = trans.translation().x;
             let boid_y = trans.translation().y;
-            // Get the boid's angle
-            //let angle = trans.euler_angles().2;
 
-            // Get the point the boid is looking at
-            // TODO: Add check so that any entity that crosses this line will cause movement
-            //let ahead = look_ahead(boid_x, boid_y, angle, boid.visual_distance);
-
-            // Distance between boid and lookahead point
-            //let dist = dist(boid_x, boid_y, ahead.x, ahead.y);
-            //println!("{:?}", dist);
-
-            // If the boid is about to go out of bounds, turn around
-            /*
-            if out_of_bounds(ahead.x, ahead.y) {
-                //info.angles.push(0.2);
-            }
-            */
-
+            // Get boid's angle in radians
             let boid_angle = rad_rotation(trans);
-            println!("{:2.3}", boid_angle);
-            /*
-            let ahead = look_ahead(boid_x, boid_y, angle, BOID_SIGHT);
 
-            println!(
-                "({:2.2}, {:2.2}) -> ({:2.2}, {:2.2})",
-                boid_x, boid_y, ahead.x, ahead.y
-            );
-            */
-
-            for (_other_boid, other_trans) in (&boids, &transforms).join() {
-                if other_trans != trans {
-                    if collision(trans, other_trans, BOID_SIGHT) {
-                        let angle_between = get_angle_between(trans, other_trans);
-                        let angle_between = fix_angle(angle_between);
-                        println!("B{} {:3.3}", boid.id, angle_between);
-
-                        // Not sure if I need checks here
-                        let boid_angle = if boid_angle > PI {
-                            boid_angle - PI
-                        } else {
-                            boid_angle
-                        };
+            // For each boid, check every other boid on the map
+            for (other_boid, other_trans) in (&boids, &transforms).join() {
+                // Don't check yourself!
+                if boid.id != other_boid.id {
+                    // RULE 1: SEPARATION
+                    // Keep a distance between every other boid
+                    if nearby(trans, other_trans, BOID_SIGHT) {
+                        // Get the angle between the two boids
+                        let angle_between = fix_angle(get_angle_between(trans, other_trans));
+                        let distance = boid_dist(trans, other_trans);
+                        // If the angle between the two boids is greater than PI, make it negative
+                        let angle_between = angle_between - boid_angle;
                         let angle_between = if angle_between > PI {
-                            angle_between - PI
+                            -angle_between
                         } else {
                             angle_between
                         };
-                        /*
-                        let boid_angle = boid_angle - PI;
-                        let angle_between = angle_between - PI;
-                        */
+                        // TODO: When a RIGHT-MOVING boid has an obstacle ABOVE it,
+                        // it barely turns
+                        //println!("B{} {:3.3}", boid.id, angle_between);
 
-                        let turn = (0.1 * angle_between) / boid_dist(trans, other_trans);
-                        let turn = if angle_between <= boid_angle {
-                            -turn
-                        } else {
-                            turn
-                        };
+                        // Calculate the amount needed to turn
+                        // Amount needed should be inversely proportional to the distance between
+                        // the boids
+                        let turn = (0.5 * angle_between) / distance;
+
+                        info.angles.push(turn);
+                    }
+
+                    if nearby(trans, other_trans, BOID_SIGHT * 5.0) {
+                        // RULE 2: ALIGNMENT
+                        // Try and match angle/velocity of nearby boids
+                        let other_boid_angle = rad_rotation(other_trans);
+                        let diff = other_boid_angle - boid_angle;
+                        let turn = diff / 1000.0;
+
+                        info.angles.push(turn);
+
+                        // RULE 3: COHESION
+                        // Try and steer towards the center of mass of neighboring boids
+                        // Or, in this case, steer slightly towards any nearby boids
+                        // Get the angle between the two boids
+                        let angle_between = fix_angle(get_angle_between(trans, other_trans));
+
+                        // If the angle between the two boids is greater than PI, make it negative
+                        let angle_between = angle_between - boid_angle;
+                        let turn = if angle_between > PI { 0.001 } else { -0.001 };
 
                         info.angles.push(turn);
                     }
                 }
             }
 
-            //info.angles.push(-0.015);
-
+            // Teleport boids if they leave the arena
             if boid_y - boid.height >= ARENA_HEIGHT {
                 info.new_y = 0.0 - boid.height;
             }
@@ -144,13 +136,6 @@ fn angle_between(x1: f32, y1: f32, x2: f32, y2: f32) -> f32 {
     (y2 - y1).atan2(x2 - x1)
 }
 
-/*
-// Determines if three points are colinear
-fn colinear(x1: f32, y1: f32, x2: f32, y2: f32, x3: f32, y3: f32) -> bool {
-    (y3 - y2) * (x2 - x1) == (y2 - y1) * (x3 - x2)
-}
-*/
-
 // Gets the rotation [0, 2pi] of the transform
 fn rad_rotation(trans: &Transform) -> f32 {
     // Get the `z` component, in radians
@@ -183,14 +168,14 @@ fn out_of_bounds(x: f32, y: f32) -> bool {
 }
 */
 
-// Determines if two boids will collide
-fn collision(boid: &Transform, other: &Transform, fov_dist: f32) -> bool {
+// Determines if two boids are nearby, based on the distance provided
+fn nearby(boid: &Transform, other: &Transform, distance: f32) -> bool {
     dist(
         boid.translation().x,
         boid.translation().y,
         other.translation().x,
         other.translation().y,
-    ) <= fov_dist
+    ) <= distance
 }
 
 fn boid_dist(boid: &Transform, other: &Transform) -> f32 {

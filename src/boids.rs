@@ -16,7 +16,7 @@ pub const ARENA_WIDTH: f32 = 200.0;
 
 pub const BOID_FOV: f32 = 0.25 * PI;
 pub const BOID_VELOCITY: f32 = 0.75;
-pub const BOID_SIGHT: f32 = 20.0;
+pub const BOID_SIGHT: f32 = 15.0;
 pub const BOID_WIDTH: f32 = 7.0;
 pub const BOID_HEIGHT: f32 = 10.0;
 
@@ -63,15 +63,15 @@ fn initialize_boids(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>,
             spawn_y = (ARENA_HEIGHT * 0.9) - 5.0;
             transform.set_rotation_2d(PI);
         } else if i % 4 == 1 {
-            // Bottom right
-            spawn_x = ARENA_WIDTH * 0.9;
-            spawn_y = (ARENA_HEIGHT * 0.1) + 5.0;
-            transform.set_rotation_2d(PI);
-        } else if i % 4 == 2 {
             // Top left
             spawn_x = (ARENA_WIDTH * 0.1) + 40.0;
             spawn_y = (ARENA_HEIGHT * 0.9) + 5.0;
             transform.set_rotation_2d(0.0);
+        } else if i % 4 == 2 {
+            // Bottom right
+            spawn_x = ARENA_WIDTH * 0.9;
+            spawn_y = (ARENA_HEIGHT * 0.1) + 5.0;
+            transform.set_rotation_2d(PI);
         } else {
             // Bottom left
             spawn_x = ARENA_WIDTH * 0.1;
