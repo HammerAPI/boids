@@ -9,16 +9,23 @@ use rand::{thread_rng, Rng};
 use std::f32::consts::PI;
 use std::f32::NAN;
 
+// Tie the "game data" to a struct
 pub struct Boids;
 
+// Default number of boids
+const DEFAULT_POPULATION: usize = 25;
+
+// Constants for the arena size
 pub const ARENA_HEIGHT: f32 = 200.0;
 pub const ARENA_WIDTH: f32 = 200.0;
 
+// Constants for the boid's features
 pub const BOID_VELOCITY: f32 = 0.75;
 pub const BOID_SIGHT: f32 = 15.0;
-pub const BOID_WIDTH: f32 = 7.0;
-pub const BOID_HEIGHT: f32 = 10.0;
+const BOID_WIDTH: f32 = 7.0;
+const BOID_HEIGHT: f32 = 10.0;
 
+// Holds transformation information to be applied to a boid
 pub struct TransformInfo {
     pub angles: Vec<f32>,
     pub velocities: Vec<f32>,
@@ -32,8 +39,6 @@ impl Component for TransformInfo {
 
 pub struct Boid {
     pub id: usize,
-    pub pos: (f32, f32),
-    pub velocity: f32,
     pub width: f32,
     pub height: f32,
 }
@@ -49,52 +54,26 @@ fn initialize_boids(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>,
         // Create the translation
         let mut transform = Transform::default();
 
-        /*
-        let spawn_x = ARENA_WIDTH / 2.0;
-        let spawn_y = ARENA_HEIGHT / 2.0;
-        */
-        /*
-        let spawn_x;
-        let spawn_y;
-        if i % 4 == 0 {
-            // Top right
-            spawn_x = (ARENA_WIDTH * 0.9) - 40.0;
-            spawn_y = (ARENA_HEIGHT * 0.8) - 5.0;
-            transform.set_rotation_2d(PI - (PI / 100.0));
-        } else if i % 4 == 1 {
-            // Top left
-            spawn_x = (ARENA_WIDTH * 0.1) + 40.0;
-            spawn_y = (ARENA_HEIGHT * 0.8) + 5.0;
-            transform.set_rotation_2d(PI / 100.0);
-        } else if i % 4 == 2 {
-            // Bottom right
-            spawn_x = ARENA_WIDTH * 0.9;
-            spawn_y = (ARENA_HEIGHT * 0.2) + 5.0;
-            transform.set_rotation_2d(PI - (PI / 100.0));
-        } else {
-            // Bottom left
-            spawn_x = ARENA_WIDTH * 0.1;
-            spawn_y = (ARENA_HEIGHT * 0.2) - 5.0;
-            transform.set_rotation_2d(PI / 100.0);
-        }
-        */
+        // Generate random spawn coordinates
         let spawn_x = rng.gen_range(BOID_WIDTH as f32, ARENA_WIDTH - BOID_WIDTH as f32);
         let spawn_y = rng.gen_range(BOID_HEIGHT as f32, ARENA_HEIGHT - BOID_HEIGHT as f32);
+
+        // Spawn with a random orientation
         transform.set_rotation_2d(rng.gen_range(-PI, PI));
+
+        // Set the coordinates
         transform.set_translation_xyz(spawn_x, spawn_y, 0.0);
 
-        // Gold boid
-        //let color: usize = rng.gen_range(0, 2);
-        let color = 1;
+        // Pick a random color for the boid
+        let color: usize = rng.gen_range(0, 2);
         let sprite_render = SpriteRender::new(sprite_sheet_handle.clone(), color);
 
+        // Create the boid
         world
             .create_entity()
             .with(sprite_render)
             .with(Boid {
                 id: i,
-                pos: (spawn_x, spawn_y),
-                velocity: BOID_VELOCITY,
                 width: BOID_WIDTH,
                 height: BOID_HEIGHT,
             })
@@ -111,20 +90,25 @@ fn initialize_boids(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>,
 
 impl SimpleState for Boids {
     fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
+        // Obtain the world to generate boids in
         let world = data.world;
 
         // Load the spritesheet for the graphics
         let sprite_sheet_handle = load_sprite_sheet(world);
 
-        world.register::<Boid>();
-
+        // If the user supplies a number of boids to spawn via command-line args, use it
+        // Otherwise, spawn in a default number of boids
         let args: Vec<String> = std::env::args().collect();
         let num_boids = if args.len() > 1 {
-            args[1].parse::<usize>().unwrap_or(1)
+            args[1].parse::<usize>().unwrap_or(DEFAULT_POPULATION)
         } else {
-            1
+            DEFAULT_POPULATION
         };
+
+        // Initialize all boids
         initialize_boids(world, sprite_sheet_handle, num_boids);
+
+        // Set up world camera
         initialize_camera(world);
     }
 }

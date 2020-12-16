@@ -43,6 +43,9 @@ impl<'a> System<'a> for CollisionSystem {
                     // RULE 1: SEPARATION
                     // Keep a distance between every other boid
                     if in_fov(trans, other_trans, BOID_SIGHT, boid_angle, angle_between) {
+                        // Calculate the amount needed to turn (away from neighbors)
+                        // Amount needed should be inversely proportional to the distance between
+                        // the boids
                         let turn = if is_left(
                             trans.translation(),
                             boid_angle,
@@ -53,12 +56,10 @@ impl<'a> System<'a> for CollisionSystem {
                             -2.0 / distance
                         };
 
-                        // Calculate the amount needed to turn
-                        // Amount needed should be inversely proportional to the distance between
-                        // the boids
                         turn_angle += turn;
                     }
 
+                    // Only affects nearby boids
                     if nearby(trans, other_trans, BOID_SIGHT * 5.0) {
                         // RULE 2: ALIGNMENT
                         // Try and match angle/velocity of nearby boids
@@ -100,33 +101,6 @@ impl<'a> System<'a> for CollisionSystem {
             if boid_x + boid.width < 0.0 {
                 info.new_x = ARENA_WIDTH + boid.width;
             }
-
-            /*
-            let mouse_coords = input.mouse_position();
-            let boid_y = trans.translation().y;
-            let boid_x = trans.translation().x;
-            if let Some(coords) = mouse_coords {
-                //println!("{}", collide_with_mouse(&boid, &trans, coords.0, coords.1));
-
-                /*
-                println!(
-                    "({:.2}, {:.2}) ({:.3}, {:.3})",
-                    boid_x, boid_y, coords.0, coords.1
-                );
-                */
-
-                if collide_with_mouse(&boid, &trans, coords.0, coords.1) {
-                    // Compute distance between mouse and boid
-                    let distance =
-                        ((coords.0 - boid_x).powi(2) + (coords.1 - boid_y).powi(2)).sqrt();
-
-                    // Angle is inversely proportional to distance
-                    let angle = 0.1 / distance;
-
-                    trans.rotate_2d(angle);
-                }
-            }
-            */
         }
     }
 }
@@ -199,21 +173,6 @@ fn fix_angle(angle: f32) -> f32 {
     }
 }
 
-/*
-// Computes the coordinates of the point ahead of the boid
-fn look_ahead(x: f32, y: f32, angle: f32, dist: f32) -> Point3<f32> {
-    let new_x = x + angle.cos() * dist;
-    let new_y = y + -(angle.sin() * dist);
-
-    Point3::new(new_x, new_y, 0.0)
-}
-
-// Determines if a coordinate is out of bounds of the arena
-fn out_of_bounds(x: f32, y: f32) -> bool {
-    x >= ARENA_WIDTH || x < 0.0 || y >= ARENA_HEIGHT || y < 0.0
-}
-*/
-
 // Determines if two boids are nearby, based on the distance provided
 fn nearby(boid: &Transform, other: &Transform, distance: f32) -> bool {
     dist(
@@ -238,19 +197,3 @@ fn boid_dist(boid: &Transform, other: &Transform) -> f32 {
 fn dist(x1: f32, y1: f32, x2: f32, y2: f32) -> f32 {
     ((x2 - x1).powi(2) + (y2 - y1).powi(2)).sqrt()
 }
-
-/*
-
-fn collide_with_mouse(boid: &Boid, transform: &Transform, mouse_x: f32, mouse_y: f32) -> bool {
-    let boid_y = transform.translation().y;
-    let boid_x = transform.translation().x;
-
-    // Construct edges of boid rectangle
-    let left = boid_x - (boid.width / 2.0);
-    let bottom = boid_y - (boid.height / 2.0);
-    let right = boid_x + boid.width + (boid.width / 2.0);
-    let top = boid_y + boid.height + (boid.height / 2.0);
-
-    mouse_x >= left && mouse_x <= right && mouse_y >= bottom && mouse_y <= top
-}
-*/
