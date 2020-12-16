@@ -1,5 +1,5 @@
 use amethyst::core::transform::TransformBundle;
-use amethyst::input::{InputBundle, StringBindings};
+//use amethyst::input::{InputBundle, StringBindings};
 use amethyst::prelude::*;
 use amethyst::renderer::plugins::{RenderFlat2D, RenderToWindow};
 use amethyst::renderer::types::DefaultBackend;
@@ -15,10 +15,10 @@ fn main() -> amethyst::Result<()> {
     let app_root = application_root_dir()?;
     let display_config_path = app_root.join("config").join("display.ron");
     let assets_dir = app_root.join("assets");
-    let binding_path = app_root.join("config").join("bindings.ron");
+    //let binding_path = app_root.join("config").join("bindings.ron");
 
-    let input_bundle =
-        InputBundle::<StringBindings>::new().with_bindings_from_file(binding_path)?;
+    //let input_bundle =
+    //   InputBundle::<StringBindings>::new().with_bindings_from_file(binding_path)?;
 
     let game_data = GameDataBuilder::default()
         .with_bundle(

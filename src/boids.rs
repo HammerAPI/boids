@@ -59,23 +59,23 @@ fn initialize_boids(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>,
         if i % 4 == 0 {
             // Top right
             spawn_x = (ARENA_WIDTH * 0.9) - 40.0;
-            spawn_y = (ARENA_HEIGHT * 0.9) - 5.0;
-            transform.set_rotation_2d(PI);
+            spawn_y = (ARENA_HEIGHT * 0.8) - 5.0;
+            transform.set_rotation_2d(PI - (PI / 100.0));
         } else if i % 4 == 1 {
             // Top left
             spawn_x = (ARENA_WIDTH * 0.1) + 40.0;
-            spawn_y = (ARENA_HEIGHT * 0.9) + 5.0;
-            transform.set_rotation_2d(0.0);
+            spawn_y = (ARENA_HEIGHT * 0.8) + 5.0;
+            transform.set_rotation_2d(PI / 100.0);
         } else if i % 4 == 2 {
             // Bottom right
             spawn_x = ARENA_WIDTH * 0.9;
-            spawn_y = (ARENA_HEIGHT * 0.1) + 5.0;
-            transform.set_rotation_2d(PI);
+            spawn_y = (ARENA_HEIGHT * 0.2) + 5.0;
+            transform.set_rotation_2d(PI - (PI / 100.0));
         } else {
             // Bottom left
             spawn_x = ARENA_WIDTH * 0.1;
-            spawn_y = (ARENA_HEIGHT * 0.1) - 5.0;
-            transform.set_rotation_2d(0.0);
+            spawn_y = (ARENA_HEIGHT * 0.2) - 5.0;
+            transform.set_rotation_2d(PI / 100.0);
         }
         */
         let spawn_x = rng.gen_range(BOID_WIDTH as f32, ARENA_WIDTH - BOID_WIDTH as f32);
