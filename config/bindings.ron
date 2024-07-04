@@ -1,7 +1,0 @@
-(
- axes: {
-    "mouse_x": Mouse(axis: X, over_extendable: false, radius: 1.0),
-    "mouse_y": Mouse(axis: Y, over_extendable: false, radius: 1.0),
- },
- actions: {},
-)
